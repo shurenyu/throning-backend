@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <script crossorigin="anonymous" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+    src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+  <meta charset="utf-8">
+  <meta content="IE=edge" http-equiv="X-UA-Compatible">
+  <meta content="width=device-width, initial-scale=1" name="viewport">
+  <title>Throning | Dashboard</title>
+  <link href="https://fonts.googleapis.com/css?family=Raleway" rel="stylesheet" type="text/css">
+  <link crossorigin="anonymous" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" rel="stylesheet">
+  <link crossorigin="anonymous" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css"
+    integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" rel="stylesheet">
+  <style>
+    .container {
+      background: #000000db;
+      color: #fff;
+      padding: 50px;
+    }
+
+    #server-details {
+      width: 100%;
+      height: 300px;
+    }
+
+    .server-container {
+      margin-top: 50px;
+    }
+
+    .metrics-container {
+      background-color: #464646;
+      width: 90%;
+      height: 80px;
+      padding: 12px;
+      margin: 0 auto;
+      color: #fff;
+      border-radius: 5px;
+    }
+
+    .server-stats {
+      margin-top: 20px;
+      margin-left: 10pxx;
+    }
+  </style>
+</head>
+
+<body class="container">
+  <div class="row">
+    <div class="col-sm">
+      <div class="metrics-container">
+        <h6>Total Users</h6>
+        <h4 class="user-count count"></h4>
+      </div>
+    </div>
+    <div class="col-sm">
+      <div class="metrics-container">
+        <h6>Total Events</h6>
+        <h4 class="event-count count"></h4>
+      </div>
+    </div>
+    <div class="col-sm">
+      <div class="metrics-container">
+        <h6>Notifications</h6>
+        <h4 class="notification-count count"></h4>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 server-container">
+    <p>click for live Stats</p><iframe id="server-details" name="server-details"
+      src="https://captain.socialclub.fun/net-data-monitor"></iframe>
+  </div><a href="https://captain.socialclub.fun/net-data-monitor" target="blank"><button
+      class="server-stats btn btn-primary" type="button">View Server Stats</button></a>
+
+  <div>
+    <a href="https://app.bugsnag.com/throning/throning-rest-api/timeline?filters[event.since][0]=30d&filters[error.status][0]=open"
+      target="blank"><button class="server-stats btn btn-success" type="button">View Server Error Dashboard</button></a>
+    <a href="https://app.bugsnag.com/throning/throning/timeline?filters[event.since][0]=30d&filters[error.status][0]=open&sort=last_seen"
+      target="blank"><button class="server-stats btn btn-success" type="button">View App Error Dashboard</button></a>
+  </div>
+  <script>
+
+    const setupIframe = function () {
+      $('#server-details').trigger('click');
+    };
+
+    const getAppStats = function () {
+      console.log('attempting to get app stats');
+      $.get('/api/get-app-stats', function (data) {
+        console.log('user count: ', data);
+        $('.user-count').text(data.userCount);
+        $('.event-count').text(data.eventCount);
+        $('.notification-count').text(data.notificationsCount);
+      });
+    };
+
+    setTimeout(function () {
+      setupIframe();
+    }, 5000);
+    setInterval(function () {
+      getAppStats();
+    }, 5000);
+    getAppStats();
+  </script>
+</body>
+
+</html>
