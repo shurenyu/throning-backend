@@ -2,7 +2,10 @@ const Mixpanel = require('mixpanel');
 const dbUtils = require('../../utils/dbUtils');
 
 const mixpanel = Mixpanel.init('bbbec7f27f28682a69cb73c2323279d1');
-
+const bugsnag = require('@bugsnag/js');
+const bugsnagExpress = require('@bugsnag/plugin-express');
+const bugsnagClient = bugsnag('26ef4241b9b5c6bf255f5c54c6ae144d');
+bugsnagClient.use(bugsnagExpress);
 // This is called immediately after you connect to FB
 const createMe = async mePayload => {
   const user = {

@@ -1,5 +1,8 @@
 const dbUtils = require('../../utils/dbUtils');
-
+const bugsnag = require('@bugsnag/js');
+const bugsnagExpress = require('@bugsnag/plugin-express');
+const bugsnagClient = bugsnag('26ef4241b9b5c6bf255f5c54c6ae144d');
+bugsnagClient.use(bugsnagExpress);
 const findUserInChats = (reciever, chats) => {
   console.log('checking for existing chats');
   for (x in chats) {
