@@ -1,6 +1,9 @@
 const GoogleLocations = require('google-locations');
 const dbUtils = require('../../utils/dbUtils');
-
+const bugsnag = require('@bugsnag/js');
+const bugsnagExpress = require('@bugsnag/plugin-express');
+const bugsnagClient = bugsnag('26ef4241b9b5c6bf255f5c54c6ae144d');
+bugsnagClient.use(bugsnagExpress);
 const locations = new GoogleLocations('AIzaSyCVZCul5NM6o3w5T2nBK91kmZAnE8kfpDI');
 
 const getCityDetials = async (req, res) => {
