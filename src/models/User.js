@@ -2,6 +2,18 @@ const mongoose = require('mongoose');
 
 const { Schema } = mongoose;
 const UserSchema = new Schema({
+  email: {
+    type: String,
+    default: ''
+  },
+  password: {
+    type: String,
+    default: ''
+  },
+  loginType: {
+    type: String,
+    default: ''
+  },
   name: {
     type: String,
     default: ''

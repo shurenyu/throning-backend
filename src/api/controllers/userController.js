@@ -9,6 +9,9 @@ bugsnagClient.use(bugsnagExpress);
 // This is called immediately after you connect to FB
 const createMe = async mePayload => {
   const user = {
+    email: mePayload.email,
+    password: mePayload.password,
+    loginType: mePayload.loginType,
     name: mePayload.name,
     isInRelationship: null,
     location: null,
@@ -57,33 +60,37 @@ const createMe = async mePayload => {
 const verifyMe = async id => dbUtils.verifyUser(id);
 
 const loginUser = async (req, res) => {
-  const { fbId, name } = req.body;
+  const { email, password, loginType, fbId, name } = req.body;
   try {
-    const newUser = await verifyMe(fbId);
-    if (newUser) {
-      req.session.userId = newUser._id;
-      res.status = 200;
-      res.send({
-        success: true,
-        user: newUser,
-        name,
-        fbId: newUser.fbId,
-        isNew: false
-      });
-    } else {
-      // lets create a new user
-      const success = await createMe({ name, fbId });
-      req.session.userId = success._id;
+    if (loginType === 'email') {
 
-      res.status = 200;
-      res.send({
-        success,
-        fbId,
-        name,
-        user: null,
-        isNew: true
-      });
-    }
+    } else {
+      const userData = await verifyMe(fbId);
+      if (userData) {
+        req.session.userId = userData._id;
+        res.status = 200;
+        res.send({
+          success: true,
+          user: userData,
+          name,
+          fbId: userData.fbId,
+          isNew: false
+        });
+      } else {
+        // lets create a new user
+        const newUser = await createMe({ email, password, name, fbId, loginType });
+        req.session.userId = newUser._id;
+  
+        res.status = 200;
+        res.send({
+          success: true,
+          fbId,
+          name,
+          user: newUser,
+          isNew: true
+        });
+      }
+    }    
   } catch (err) {
     bugsnagClient.notify(err);
     console.log(`caught ${err}`);
@@ -246,7 +253,6 @@ const userSearch = async (req, res) => {
   try {
     const searchString = req.query.search;
     const foundUsers = await dbUtils.searchUsers(searchString);
-
     res.status = 200;
     res.json(foundUsers);
   } catch (err) {

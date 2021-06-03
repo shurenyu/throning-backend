@@ -7,6 +7,7 @@ const Mixpanel = require('mixpanel');
 const bugsnag = require('@bugsnag/js');
 const bugsnagExpress = require('@bugsnag/plugin-express');
 const bugsnagClient = bugsnag('26ef4241b9b5c6bf255f5c54c6ae144d');
+
 bugsnagClient.use(bugsnagExpress);
 
 const mixpanel = Mixpanel.init('bbbec7f27f28682a69cb73c2323279d1');
@@ -342,22 +343,27 @@ const getEventPhotos = async (req, res) => {
   };
   const bannedList = await dbUtils.blahGetter('5c59150da8dad54f43a1541f');
   // Getting pictures of doors
+  console.log('unsplash', keyword);
   try {
-    stocksnap(keyword, options, snaps => {
-      for (let x = 0; x < snaps.length; x += 1) {
-        if (
-          snaps[x].indexOf('svg') > -1 ||
-          snaps[x].indexOf('shutter') > -1 ||
-          bannedList.random[snaps[x]]
-        ) {
-          snaps.splice(x, 1);
-          x -= 1;
-        }
-      }
+    // stocksnap(keyword, options, snaps => {
+    //   console.log('#############');
+    //   console.log(snaps);
+    //   for (let x = 0; x < snaps.length; x += 1) {
+    //     if (
+    //       snaps[x].indexOf('svg') > -1 ||
+    //       snaps[x].indexOf('shutter') > -1 ||
+    //       bannedList.random[snaps[x]]
+    //     ) {
+    //       snaps.splice(x, 1);
+    //       x -= 1;
+    //     }
+    //   }
 
-      res.status = 200;
-      res.json({ success: true, picUrls: snaps });
-    });
+    //   res.status = 200;
+    //   res.json({ success: true, picUrls: snaps });
+    // });
+    res.status = 200;
+    res.json({ success: false });
   } catch (err) {
     bugsnagClient.notify(err);
     res.status = 200;
