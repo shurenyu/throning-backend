@@ -1,4 +1,5 @@
 const Mixpanel = require('mixpanel');
+const { v4: uuidv4 } = require('uuid');
 const dbUtils = require('../../utils/dbUtils');
 
 const mixpanel = Mixpanel.init('bbbec7f27f28682a69cb73c2323279d1');
@@ -57,15 +58,61 @@ const createMe = async mePayload => {
 };
 
 // this can be used to get the user
-const verifyMe = async id => dbUtils.verifyUser(id);
+const verifyMe = async (email, password, loginType, fbId) => dbUtils.verifyUser(email, password, loginType, fbId);
 
+const register = async (req, res) => {
+  const { email, password, loginType, name } = req.body;
+  try {
+    if (loginType === 'email') {
+      const userData = await verifyMe(email, '', 'auth', '');
+      if(userData) {
+        res.status = 200;
+        res.send({ success: false});
+      } else {
+        const newUser = await createMe({ email, password, name, fbId: uuidv4(), loginType });
+        req.session.userId = newUser._id;
+  
+        res.status = 200;
+        res.send({
+          success: true,
+          fbId: newUser.fbId,
+          name,
+          user: newUser,
+          isNew: true
+        });  
+      }
+    } 
+  } catch (err) {
+    bugsnagClient.notify(err);
+    console.log(`caught ${err}`);
+    res.status = 400;
+    res.send({ success: false });
+  }
+}
 const loginUser = async (req, res) => {
   const { email, password, loginType, fbId, name } = req.body;
   try {
     if (loginType === 'email') {
-
+      const userData = await verifyMe(email, password, 'email', '');      
+      if (userData) {
+        req.session.userId = userData._id;
+        res.status = 200;
+        res.send({
+          success: true,
+          user: userData,
+          name,
+          fbId: userData.fbId,
+          isNew: false
+        });
+      } else {
+        // lets create a new user  
+        res.status = 200;
+        res.send({
+          success: false
+        });
+      }
     } else {
-      const userData = await verifyMe(fbId);
+      const userData = await verifyMe('', '', 'facebook', fbId);
       if (userData) {
         req.session.userId = userData._id;
         res.status = 200;
@@ -377,5 +424,6 @@ module.exports = {
   reportUser,
   deleteProfile,
   loginMe,
+  register,
   checkData
 };

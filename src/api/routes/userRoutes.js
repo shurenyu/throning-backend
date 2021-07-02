@@ -8,6 +8,7 @@ module.exports = app => {
     .put(userController.updateMe);
 
   app.route('/api/user/login').get(userController.loginMe);
+  app.route('/api/user/register').post(userController.register);
   app.route('/api/user/search').get(userController.userSearch);
   app.route('/api/user/select').get(userController.getUsers);
   app.route('/api/user/update-explore').post(userController.updateExplore);

@@ -898,8 +898,30 @@ const searchUsers = async searchText =>
     })
     .exec();
 
-const verifyUser = async fbId =>
-  User.findOne({ fbId })
+const verifyUser = async (email, password, loginType, fbId) => {
+  if (loginType == 'auth') {
+    return User.findOne({ email, loginType: 'email' })
+    .populate({
+      path: 'unreadNotifications readNotifications',
+      model: 'Notification',
+      populate: [
+        {
+          path: 'event',
+          model: 'Event'
+        },
+        {
+          path: 'user',
+          model: 'User'
+        }
+      ]
+    })
+    .exec()
+    .catch(err => {
+      throw new Error(`Failed to verify users ${err}`);
+    });    
+  }
+  else if (loginType == 'email') {
+    return User.findOne({ email, password })
     .populate({
       path: 'unreadNotifications readNotifications',
       model: 'Notification',
@@ -918,6 +940,28 @@ const verifyUser = async fbId =>
     .catch(err => {
       throw new Error(`Failed to verify users ${err}`);
     });
+  } else {
+    return User.findOne({ fbId })
+    .populate({
+      path: 'unreadNotifications readNotifications',
+      model: 'Notification',
+      populate: [
+        {
+          path: 'event',
+          model: 'Event'
+        },
+        {
+          path: 'user',
+          model: 'User'
+        }
+      ]
+    })
+    .exec()
+    .catch(err => {
+      throw new Error(`Failed to verify users ${err}`);
+    });
+  }
+}
 
 const checkNotificationDuplicate = async (toUserId, fromUserId, eventId, type, message) => {
   return Notification.find({ user: fromUserId, event: eventId, type, message });
