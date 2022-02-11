@@ -7,6 +7,11 @@ const Message = require('../models/Message');
 const Chat = require('../models/Chat');
 const userUtils = require('./userUtils');
 const moment = require('moment');
+const bugsnag = require('@bugsnag/js');
+const bugsnagExpress = require('@bugsnag/plugin-express');
+
+const bugsnagClient = bugsnag('26ef4241b9b5c6bf255f5c54c6ae144d');
+bugsnagClient.use(bugsnagExpress);
 
 // Event.find({
 //   geo: {
@@ -56,17 +61,11 @@ const moment = require('moment');
 //   });
 // });
 
-const getUserCount = async () => {
-  return User.find({});
-};
+const getUserCount = async () => User.find({});
 
-const getEventCount = async () => {
-  return Event.find({});
-};
+const getEventCount = async () => Event.find({});
 
-const getNotificationCount = async () => {
-  return Notification.find({});
-};
+const getNotificationCount = async () => Notification.find({});
 
 // Events
 const getEvent = async id => Event.findById(id);
@@ -83,7 +82,7 @@ const saveEventToDb = async eventItem => {
 };
 
 const modifyEventInDb = async (id, eventItem) => {
-  //const normalizedEvent = normalizeDates(eventItem);
+  // const normalizedEvent = normalizeDates(eventItem);
   return Event.findByIdAndUpdate(id, eventItem, { new: true });
 };
 
@@ -391,7 +390,7 @@ const getPeopleViaGeoAndPref = async (location, exlcuded, agePref, relationshipP
     relationshipPref,
     tier
   );
-  //console.log('segmentOne', segmentOne);
+  // console.log('segmentOne', segmentOne);
   updatedExcluded = segmentOne.concat(exlcuded);
 
   const segmentTwo = await getPeopleSegmentTwo(
@@ -403,7 +402,7 @@ const getPeopleViaGeoAndPref = async (location, exlcuded, agePref, relationshipP
     tier
   );
   updatedExcluded = updatedExcluded.concat(segmentTwo);
-  //console.log('segmentTwo', segmentTwo);
+  // console.log('segmentTwo', segmentTwo);
 
   const segmentThree = await getPeopleSegmentThree(
     long,
@@ -483,7 +482,7 @@ const getEventsViaGeoAndPref = async (location, exlcuded, agePref, relationshipP
     tier
   );
 
-  //console.log('events here', segmentOne);
+  // console.log('events here', segmentOne);
   events = events.concat(segmentOne);
   events = events.concat(segmentTwo);
   events = events.concat(segmentThree);
@@ -899,72 +898,72 @@ const searchUsers = async searchText =>
     .exec();
 
 const verifyUser = async (email, password, loginType, fbId) => {
-  if (loginType == 'auth') {
-    return User.findOne({ email, loginType: 'email' })
-    .populate({
-      path: 'unreadNotifications readNotifications',
-      model: 'Notification',
-      populate: [
-        {
-          path: 'event',
-          model: 'Event'
-        },
-        {
-          path: 'user',
-          model: 'User'
-        }
-      ]
-    })
-    .exec()
-    .catch(err => {
-      throw new Error(`Failed to verify users ${err}`);
-    });    
-  }
-  else if (loginType == 'email') {
+  if (loginType === 'apple') {
+    return User.findOne({ email, loginType: 'apple' })
+      .populate({
+        path: 'unreadNotifications readNotifications',
+        model: 'Notification',
+        populate: [
+          {
+            path: 'event',
+            model: 'Event'
+          },
+          {
+            path: 'user',
+            model: 'User'
+          }
+        ]
+      })
+      .exec()
+      .catch(err => {
+        throw new Error(`Failed to verify users ${err}`);
+      });
+  } else if (loginType === 'email') {
     return User.findOne({ email, password })
-    .populate({
-      path: 'unreadNotifications readNotifications',
-      model: 'Notification',
-      populate: [
-        {
-          path: 'event',
-          model: 'Event'
-        },
-        {
-          path: 'user',
-          model: 'User'
-        }
-      ]
-    })
-    .exec()
-    .catch(err => {
-      throw new Error(`Failed to verify users ${err}`);
-    });
-  } else {
-    return User.findOne({ fbId })
-    .populate({
-      path: 'unreadNotifications readNotifications',
-      model: 'Notification',
-      populate: [
-        {
-          path: 'event',
-          model: 'Event'
-        },
-        {
-          path: 'user',
-          model: 'User'
-        }
-      ]
-    })
-    .exec()
-    .catch(err => {
-      throw new Error(`Failed to verify users ${err}`);
-    });
+      .populate({
+        path: 'unreadNotifications readNotifications',
+        model: 'Notification',
+        populate: [
+          {
+            path: 'event',
+            model: 'Event'
+          },
+          {
+            path: 'user',
+            model: 'User'
+          }
+        ]
+      })
+      .exec()
+      .catch(err => {
+        throw new Error(`Failed to verify users ${err}`);
+      });
   }
-}
+  return User.findOne({ fbId })
+    .populate({
+      path: 'unreadNotifications readNotifications',
+      model: 'Notification',
+      populate: [
+        {
+          path: 'event',
+          model: 'Event'
+        },
+        {
+          path: 'user',
+          model: 'User'
+        }
+      ]
+    })
+    .exec()
+    .catch(err => {
+      throw new Error(`Failed to verify users ${err}`);
+    });
+};
 
 const checkNotificationDuplicate = async (toUserId, fromUserId, eventId, type, message) => {
-  return Notification.find({ user: fromUserId, event: eventId, type, message });
+  return Notification.find({
+    user: fromUserId, event: eventId, type, message
+  });
 };
 
 const createNotification = async (toUserId, fromUserId, eventId, type, message) => {
@@ -1063,7 +1062,9 @@ const eventAddJoinedUser = async (eventId, userId, userRelationshipStatus) => {
 
   return Event.findByIdAndUpdate(
     eventId,
-    { joinedUsers, joinRequests, attendeedsInRelationship, attendeedsSingle, attendeedsMarried },
+    {
+      joinedUsers, joinRequests, attendeedsInRelationship, attendeedsSingle, attendeedsMarried 
+    },
     { new: true }
   );
 };
@@ -1216,7 +1217,7 @@ const deleteMessage = async messageId => Message.remove({ _id: messageId });
 
 const getPeopleByCity = async (city, exlcuded) =>
   User.find({
-    //'location.addressComponents.locality': city
+    // 'location.addressComponents.locality': city
     $and: [{ 'location.addressComponents.locality': city }, { _id: { $nin: exlcuded } }]
   })
     .populate({

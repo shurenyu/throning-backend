@@ -5,6 +5,7 @@ module.exports = {
     'comma-dangle': 0,
     'class-methods-use-this': 0,
     'import/prefer-default-export': 0,
+    'max-len': ["error", { "code": 120 }],
     'no-console': 0,
     'function-paren-newline': 0,
     'no-underscore-dangle': 0

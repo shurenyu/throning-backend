@@ -5,6 +5,7 @@ const dbUtils = require('../../utils/dbUtils');
 const mixpanel = Mixpanel.init('bbbec7f27f28682a69cb73c2323279d1');
 const bugsnag = require('@bugsnag/js');
 const bugsnagExpress = require('@bugsnag/plugin-express');
+
 const bugsnagClient = bugsnag('26ef4241b9b5c6bf255f5c54c6ae144d');
 bugsnagClient.use(bugsnagExpress);
 // This is called immediately after you connect to FB
@@ -61,17 +62,21 @@ const createMe = async mePayload => {
 const verifyMe = async (email, password, loginType, fbId) => dbUtils.verifyUser(email, password, loginType, fbId);
 
 const register = async (req, res) => {
-  const { email, password, loginType, name } = req.body;
+  const {
+    email, password, loginType, name
+  } = req.body;
   try {
     if (loginType === 'email') {
       const userData = await verifyMe(email, '', 'auth', '');
-      if(userData) {
+      if (userData) {
         res.status = 200;
-        res.send({ success: false});
+        res.send({ success: false });
       } else {
-        const newUser = await createMe({ email, password, name, fbId: uuidv4(), loginType });
+        const newUser = await createMe({
+          email, password, name, fbId: uuidv4(), loginType
+        });
         req.session.userId = newUser._id;
-  
+
         res.status = 200;
         res.send({
           success: true,
@@ -79,40 +84,23 @@ const register = async (req, res) => {
           name,
           user: newUser,
           isNew: true
-        });  
+        });
       }
-    } 
+    }
   } catch (err) {
     bugsnagClient.notify(err);
     console.log(`caught ${err}`);
     res.status = 400;
     res.send({ success: false });
   }
-}
+};
 const loginUser = async (req, res) => {
-  const { email, password, loginType, fbId, name } = req.body;
+  const {
+    email, password, loginType, fbId, name
+  } = req.body;
   try {
     if (loginType === 'email') {
-      const userData = await verifyMe(email, password, 'email', '');      
-      if (userData) {
-        req.session.userId = userData._id;
-        res.status = 200;
-        res.send({
-          success: true,
-          user: userData,
-          name,
-          fbId: userData.fbId,
-          isNew: false
-        });
-      } else {
-        // lets create a new user  
-        res.status = 200;
-        res.send({
-          success: false
-        });
-      }
-    } else {
-      const userData = await verifyMe('', '', 'facebook', fbId);
+      const userData = await verifyMe(email, password, 'email', '');
       if (userData) {
         req.session.userId = userData._id;
         res.status = 200;
@@ -125,9 +113,29 @@ const loginUser = async (req, res) => {
         });
       } else {
         // lets create a new user
-        const newUser = await createMe({ email, password, name, fbId, loginType });
+        res.status = 200;
+        res.send({
+          success: false
+        });
+      }
+    } else {
+      const userData = await verifyMe(email, '', loginType, fbId);
+      if (userData) {
+        req.session.userId = userData._id;
+        res.status = 200;
+        res.send({
+          success: true,
+          user: userData,
+          name,
+          fbId: userData.fbId,
+          isNew: false
+        });
+      } else {
+        // lets create a new user
+        const newUser = await createMe({
+          email, password, name, fbId, loginType
+        });
         req.session.userId = newUser._id;
-  
         res.status = 200;
         res.send({
           success: true,
@@ -137,7 +145,7 @@ const loginUser = async (req, res) => {
           isNew: true
         });
       }
-    }    
+    }
   } catch (err) {
     bugsnagClient.notify(err);
     console.log(`caught ${err}`);
@@ -189,11 +197,8 @@ const updateExplore = async (req, res) => {
   console.log(newIndex);
   user.exploreIndexs[type][currentCity] = newIndex;
   console.log('user.exploreIndexs[type][currentCity]: ', user.exploreIndexs[type][currentCity]);
-  //console.log(user.fbId);
   try {
     const meDoc = await dbUtils.modifyExplore(user.fbId, user);
-    //console.log('me doc below');
-    //console.log(meDoc);
     res.status = 200;
     res.json(meDoc);
   } catch (err) {
@@ -215,7 +220,7 @@ const getMe = async (req, res) => {
 
   try {
     const user = await verifyMe(fbId);
-    //console.log(user);
+    // console.log(user);
     if (user) {
       req.session.userId = user._id;
 
@@ -244,7 +249,7 @@ const checkData = async (req, res) => {
 
   try {
     const user = await verifyMe(fbId);
-    //console.log(user);
+    // console.log(user);
     if (user) {
       req.session.userId = user._id;
       res.status = 200;
@@ -275,7 +280,7 @@ const loginMe = async (req, res) => {
 
   try {
     const user = await verifyMe(fbId);
-    //console.log(user);
+    // console.log(user);
     mixpanel.track('login', {
       name: user.name
     });
@@ -330,7 +335,7 @@ const blockUser = async (req, res) => {
 
   try {
     const result = await dbUtils.blockUser(blockie, blocker, reason);
-    const track = { blocker: blocker.name, blockie: blockie.name, reason: reason };
+    const track = { blocker: blocker.name, blockie: blockie.name, reason };
     mixpanel.track('block user', track);
     res.status = 200;
     res.json({ success: result });
@@ -344,7 +349,7 @@ const blockUser = async (req, res) => {
 
 const reportUser = async (req, res) => {
   const { blockie, blocker, reason } = req.body;
-  const track = { blocker: blocker.name, blockie: blockie.name, reason: reason };
+  const track = { blocker: blocker.name, blockie: blockie.name, reason };
   mixpanel.track('report user', track);
   try {
     const result = await dbUtils.reportUser(blockie, blocker, reason);
