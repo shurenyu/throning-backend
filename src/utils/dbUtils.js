@@ -899,7 +899,7 @@ const searchUsers = async searchText =>
 
 const verifyUser = async (email, password, loginType, fbId) => {
   if (loginType === 'apple') {
-    return User.findOne({ email, loginType: 'apple' })
+    return User.findOne({ email, loginType })
       .populate({
         path: 'unreadNotifications readNotifications',
         model: 'Notification',

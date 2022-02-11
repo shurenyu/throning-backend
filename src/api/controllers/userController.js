@@ -132,14 +132,18 @@ const loginUser = async (req, res) => {
         });
       } else {
         // lets create a new user
+        let newUserId = fbId;
+        if (fbId === '') {
+          newUserId = uuidv4();
+        }
         const newUser = await createMe({
-          email, password, name, fbId, loginType
+          email, password, name, fbId: newUserId, loginType
         });
         req.session.userId = newUser._id;
         res.status = 200;
         res.send({
           success: true,
-          fbId,
+          fbId: newUserId,
           name,
           user: newUser,
           isNew: true
